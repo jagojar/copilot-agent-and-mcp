@@ -12,6 +12,7 @@ const Favorites = () => {
 
   const [editingId, setEditingId] = useState(null);
   const [draftComment, setDraftComment] = useState('');
+  const [saveError, setSaveError] = useState(null);
 
   useEffect(() => {
     if (!token) {
@@ -24,17 +25,24 @@ const Favorites = () => {
   const handleEditStart = (book) => {
     setEditingId(book.id);
     setDraftComment(book.comment || '');
+    setSaveError(null);
   };
 
   const handleEditCancel = () => {
     setEditingId(null);
     setDraftComment('');
+    setSaveError(null);
   };
 
   const handleEditSave = async (bookId) => {
-    await dispatch(updateFavoriteComment({ token, bookId, comment: draftComment }));
+    const result = await dispatch(updateFavoriteComment({ token, bookId, comment: draftComment }));
+    if (updateFavoriteComment.rejected.match(result)) {
+      setSaveError(result.payload || 'Failed to save comment. Please try again.');
+      return;
+    }
     setEditingId(null);
     setDraftComment('');
+    setSaveError(null);
   };
 
   if (status === 'loading') return <div>Loading...</div>;
@@ -90,6 +98,11 @@ const Favorites = () => {
                       boxSizing: 'border-box',
                     }}
                   />
+                  {saveError && (
+                    <div style={{ color: '#c0392b', fontSize: '0.88rem', marginTop: '0.25rem' }}>
+                      {saveError}
+                    </div>
+                  )}
                   <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
                     <button
                       data-testid={`save-comment-${book.id}`}

@@ -33,7 +33,7 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
   router.put('/:bookId', authenticateToken, (req, res) => {
     const { bookId } = req.params;
     const { comment } = req.body;
-    if (comment === undefined) return res.status(400).json({ message: 'Comment required' });
+    if (comment === undefined) return res.status(400).json({ message: 'Comment field is required' });
     const users = readJSON(usersFile);
     const user = users.find(u => u.username === req.user.username);
     if (!user) return res.status(404).json({ message: 'User not found' });
