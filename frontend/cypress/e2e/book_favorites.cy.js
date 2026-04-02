@@ -36,6 +36,20 @@ describe('Book Favorites App', () => {
     cy.get('h2').contains('My Favorite Books').should('exist');
   });
 
+  it('should allow removing a book from favorites', () => {
+    // Login first
+    cy.contains('Login').click();
+    cy.get('input[name="username"]').type(user.username);
+    cy.get('input[name="password"]').type(user.password);
+    cy.get('button#login').click();
+    cy.get('a#favorites-link').click();
+    cy.get('h2').contains('My Favorite Books').should('exist');
+    cy.get('li').first().within(() => {
+      cy.get('button').contains('Remove from Favorites').click();
+    });
+    cy.get('li').should('have.length', 0);
+  });
+
   it('should logout and protect routes', () => {
     // Login first
     cy.contains('Login').click();
