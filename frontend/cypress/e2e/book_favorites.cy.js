@@ -36,6 +36,28 @@ describe('Book Favorites App', () => {
     cy.get('h2').contains('My Favorite Books').should('exist');
   });
 
+  it('should allow adding a comment to a favorite', () => {
+    // Login first
+    cy.contains('Login').click();
+    cy.get('input[name="username"]').type(user.username);
+    cy.get('input[name="password"]').type(user.password);
+    cy.get('button#login').click();
+    // Add a book to favorites
+    cy.contains('Books').click();
+    cy.get('button').contains('Add to Favorites').first().click();
+    // Navigate to favorites
+    cy.get('a#favorites-link').click();
+    cy.get('h2').contains('My Favorite Books').should('exist');
+    // Click 'Add comment' on the first favorite
+    cy.get('[data-testid^="edit-comment-"]').first().click();
+    // Type a comment
+    cy.get('[data-testid^="comment-input-"]').first().type('A wonderful book!');
+    // Save the comment
+    cy.get('[data-testid^="save-comment-"]').first().click();
+    // Verify the comment is displayed
+    cy.contains('A wonderful book!').should('exist');
+  });
+
   it('should logout and protect routes', () => {
     // Login first
     cy.contains('Login').click();

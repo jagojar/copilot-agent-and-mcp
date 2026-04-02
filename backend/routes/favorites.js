@@ -8,7 +8,12 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     const user = users.find(u => u.username === req.user.username);
     if (!user) return res.status(404).json({ message: 'User not found' });
     const books = readJSON(booksFile);
-    const favorites = books.filter(b => user.favorites.indexOf(b.id) !== -1);
+    const favorites = books
+      .filter(b => user.favorites.some(f => f.bookId === b.id))
+      .map(b => {
+        const fav = user.favorites.find(f => f.bookId === b.id);
+        return { ...b, comment: fav.comment || '' };
+      });
     res.json(favorites);
   });
 
@@ -18,11 +23,25 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     const users = readJSON(usersFile);
     const user = users.find(u => u.username === req.user.username);
     if (!user) return res.status(404).json({ message: 'User not found' });
-    if (user.favorites.indexOf(bookId) == -1) {
-      user.favorites.push(bookId);
+    if (!user.favorites.some(f => f.bookId === bookId)) {
+      user.favorites.push({ bookId, comment: '' });
       writeJSON(usersFile, users);
     }
     res.status(200).json({ message: 'Book added to favorites' });
+  });
+
+  router.put('/:bookId', authenticateToken, (req, res) => {
+    const { bookId } = req.params;
+    const { comment } = req.body;
+    if (comment === undefined) return res.status(400).json({ message: 'Comment required' });
+    const users = readJSON(usersFile);
+    const user = users.find(u => u.username === req.user.username);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    const fav = user.favorites.find(f => f.bookId === bookId);
+    if (!fav) return res.status(404).json({ message: 'Favorite not found' });
+    fav.comment = comment;
+    writeJSON(usersFile, users);
+    res.status(200).json({ message: 'Comment updated' });
   });
 
   return router;

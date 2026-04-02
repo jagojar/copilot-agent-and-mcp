@@ -3,17 +3,17 @@
     "username": "sandra",
     "password": "sandra",
     "favorites": [
-      "1",
-      "2",
-      "7",
-      "15",
-      "9",
-      "6",
-      "5",
-      "16",
-      "14",
-      "20",
-      "21"
+      { "bookId": "1", "comment": "" },
+      { "bookId": "2", "comment": "" },
+      { "bookId": "7", "comment": "" },
+      { "bookId": "15", "comment": "" },
+      { "bookId": "9", "comment": "" },
+      { "bookId": "6", "comment": "" },
+      { "bookId": "5", "comment": "" },
+      { "bookId": "16", "comment": "" },
+      { "bookId": "14", "comment": "" },
+      { "bookId": "20", "comment": "" },
+      { "bookId": "21", "comment": "" }
     ]
   }
 ]

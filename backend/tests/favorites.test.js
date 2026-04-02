@@ -64,7 +64,7 @@ describe('Favorites API', () => {
     const books = JSON.parse(fs.readFileSync(booksFile, 'utf-8'));
     const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
     const sandra = users.find(u => u.username === 'sandra');
-    const notFav = books.find(b => !sandra.favorites.includes(b.id));
+    const notFav = books.find(b => !sandra.favorites.some(f => f.bookId === b.id));
     if (!notFav) return; // skip if all are favorites
     const res = await request(app)
       .post('/api/favorites')
@@ -78,7 +78,7 @@ describe('Favorites API', () => {
     const token = getToken('sandra');
     const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
     const sandra = users.find(u => u.username === 'sandra');
-    const alreadyFav = sandra.favorites[0];
+    const alreadyFav = sandra.favorites[0].bookId;
     const res = await request(app)
       .post('/api/favorites')
       .set('Authorization', `Bearer ${token}`)
@@ -110,5 +110,56 @@ describe('Favorites API', () => {
       .post('/api/favorites')
       .send({ bookId: '1' });
     expect(res.statusCode).toBe(401);
+  });
+
+  it('PUT /api/favorites/:bookId should update comment on a favorite', async () => {
+    const token = getToken('sandra');
+    const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+    const sandra = users.find(u => u.username === 'sandra');
+    const favBookId = sandra.favorites[0].bookId;
+    const res = await request(app)
+      .put(`/api/favorites/${favBookId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ comment: 'A great read!' });
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toMatch(/updated/i);
+    const updatedUsers = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+    const updatedSandra = updatedUsers.find(u => u.username === 'sandra');
+    const updatedFav = updatedSandra.favorites.find(f => f.bookId === favBookId);
+    expect(updatedFav.comment).toBe('A great read!');
+  });
+
+  it('PUT /api/favorites/:bookId should fail without auth', async () => {
+    const res = await request(app)
+      .put('/api/favorites/1')
+      .send({ comment: 'test' });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('PUT /api/favorites/:bookId should fail with missing comment', async () => {
+    const token = getToken('sandra');
+    const res = await request(app)
+      .put('/api/favorites/1')
+      .set('Authorization', `Bearer ${token}`)
+      .send({});
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('PUT /api/favorites/:bookId should 404 for non-favorite book', async () => {
+    const token = getToken('sandra');
+    const res = await request(app)
+      .put('/api/favorites/99999')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ comment: 'test' });
+    expect(res.statusCode).toBe(404);
+  });
+
+  it('PUT /api/favorites/:bookId should 404 for non-existent user', async () => {
+    const token = getToken('nouser');
+    const res = await request(app)
+      .put('/api/favorites/1')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ comment: 'test' });
+    expect(res.statusCode).toBe(404);
   });
 });

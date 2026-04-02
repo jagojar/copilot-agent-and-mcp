@@ -19,6 +19,21 @@ export const addFavorite = createAsyncThunk('favorites/addFavorite', async ({ to
   return bookId;
 });
 
+export const updateFavoriteComment = createAsyncThunk(
+  'favorites/updateFavoriteComment',
+  async ({ token, bookId, comment }) => {
+    await fetch(`http://localhost:4000/api/favorites/${bookId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ comment }),
+    });
+    return { bookId, comment };
+  }
+);
+
 const favoritesSlice = createSlice({
   name: 'favorites',
   initialState: { items: [], status: 'idle' },
@@ -33,6 +48,11 @@ const favoritesSlice = createSlice({
       .addCase(fetchFavorites.rejected, state => { state.status = 'failed'; })
       .addCase(addFavorite.fulfilled, (state, action) => {
         // After adding, fetch the updated favorites list to ensure UI is in sync
+      })
+      .addCase(updateFavoriteComment.fulfilled, (state, action) => {
+        const { bookId, comment } = action.payload;
+        const item = state.items.find(i => i.id === bookId);
+        if (item) item.comment = comment;
       });
   },
 });
